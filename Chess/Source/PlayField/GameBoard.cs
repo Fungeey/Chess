@@ -4,12 +4,15 @@ using Microsoft.Xna.Framework;
 using Nez;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Chess.Source.PlayField {
     sealed class GameBoard : SceneComponent, IUpdatable {
 
         private static readonly Lazy<GameBoard> lazy = new Lazy<GameBoard>(() => new GameBoard());
         public static GameBoard Instance { get => lazy.Value; }
+
+        private List<Cell> cells;
 
         private GameBoard() { }
 
@@ -30,11 +33,12 @@ namespace Chess.Source.PlayField {
 
         public void Load(BoardLayout layout) {
             Layout = layout;
+            cells = new List<Cell>();
 
             foreach(PieceDefinition p in layout.pieces) {
                 Piece e = p.ToEntity();
                 e.LoadTexture(Scene);
-                pieceRenderer.AddPiece(e);
+                AddPiece(p.position, e);
             }
 
             boardRenderer.SetSize(layout.width, layout.height);
@@ -63,7 +67,7 @@ namespace Chess.Source.PlayField {
                 RemovePiece(toCapture);
 
             turn.start.piece.boardPosition = turn.end.position;
-            AddPiece(turn.start.piece);
+            AddPiece(turn.end.position, turn.start.piece);
         }
 
         #region Transformations
@@ -77,11 +81,19 @@ namespace Chess.Source.PlayField {
         #endregion
 
         #region Board Api
-        public bool PieceExists(Point position) => pieceRenderer.pieces.ContainsKey(position);
-        public void RemovePiece(Piece piece) => pieceRenderer.RemovePiece(piece);
-        public void AddPiece(Piece piece) => pieceRenderer.AddPiece(piece);
-        public bool TryGetPiece(Point position, out Piece piece) => pieceRenderer.pieces.TryGetValue(position, out piece);
-        public Dictionary<Point, Piece> GetPieces() => pieceRenderer.pieces;
+        public bool CellOccupied(Point position) => cells.Where(c => c.position == position).Any();
+        public void RemovePiece(Piece piece) => cells.RemoveAll(c => c.piece == piece);
+        public void AddPiece(Point position, Piece piece) => cells.Add(new Cell(position, piece));
+        public void AddCell(Cell cell) => cells.Add(cell);
+        public bool TryGetPiece(Point position, out Piece piece) {
+            piece = null;
+            if(!CellOccupied(position))
+                return false;
+
+            piece = cells.Find(c => c.position == position).piece;
+            return true;
+        }
+        public List<Cell> GetCells() => new List<Cell>(cells);
         public static bool InBounds(Point p) => (p.X >= 0 && p.Y >= 0 && p.X < Instance.Layout.width && p.Y < Instance.Layout.width);
         public static bool InBounds(Vector2 v) => v.WithinBounds(GetBoardRect());
         public static Rectangle GetBoardRect() => new Rectangle(Point.Zero, new Point(Instance.Layout.width * Constants.CellSize, Instance.Layout.height * Constants.CellSize));

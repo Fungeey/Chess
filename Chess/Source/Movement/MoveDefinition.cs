@@ -32,7 +32,7 @@ namespace Chess.Source.Movement
                     this.distance = c == 'n' ? int.MaxValue : (int)char.GetNumericValue(c);
 
                 if("ico".Contains(c))
-                    this.condition = (MoveCondition)c;
+                    this.condition |= (MoveCondition)Math.Pow(2, "ico".IndexOf(c) + 1);
             }
 
             direction &= ~MoveDirection.None;
@@ -50,11 +50,12 @@ namespace Chess.Source.Movement
         DiagonalBackwards = 32
     }
 
+    [Flags]
     public enum MoveCondition
     {
-        Default,
-        Initial = 'i',
-        Capture = 'c',
-        NotCapture = 'o'
+        Default = 1,
+        Initial = 2,
+        CaptureOnly = 4,
+        NotCaptureOnly = 8
     }
 }

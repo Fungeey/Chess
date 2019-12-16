@@ -10,12 +10,6 @@ namespace Chess.Source.Gameplay {
 		private bool startTurn = true;
 		private List<Point> moves;
 
-		public string Name { get; set; }
-
-		public HumanPlayer(string name) {
-			this.Name = name;
-		}
-
 		public bool TurnCompleted(out Turn? turn) {
 			turn = null;
 			if(!GameBoard.Instance.ClickedCell.HasValue)

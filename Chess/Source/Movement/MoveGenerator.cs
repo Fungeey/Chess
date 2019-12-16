@@ -1,5 +1,4 @@
-﻿using Chess.Source.Pieces;
-using Chess.Source.PlayField;
+﻿using Chess.Source.PlayField;
 using Microsoft.Xna.Framework;
 using Nez;
 using System;
@@ -69,14 +68,14 @@ namespace Chess.Source.Movement {
         }
 
         private static List<Point> FilterMoves(MoveDefinition moveDef, List<Point> cells, Cell cell) {
-            if(moveDef.condition == MoveCondition.Initial && cell.piece.HasMoved)
+            if(moveDef.condition.HasFlag(MoveCondition.Initial) && cell.piece.HasMoved)
                 return new List<Point>();
 
-            if(moveDef.condition == MoveCondition.Capture)
-                cells.RemoveAll(point => !GameBoard.Instance.PieceExists(point));
-
-            if(moveDef.condition == MoveCondition.NotCapture)
-                cells.RemoveAll(point => GameBoard.Instance.PieceExists(point));
+            if(moveDef.condition.HasFlag(MoveCondition.CaptureOnly))
+                cells.RemoveAll(point => !GameBoard.Instance.CellOccupied(point));
+            
+            if(moveDef.condition.HasFlag(MoveCondition.NotCaptureOnly))
+                cells.RemoveAll(point => GameBoard.Instance.CellOccupied(point));
 
             return cells;
         }

@@ -4,7 +4,7 @@ using System.Linq;
 namespace Chess.Source.Movement {
     class MoveSet
     {
-        public static readonly MoveSet Pawn = new MoveSet("o1^,i2^,c1>");
+        public static readonly MoveSet Pawn = new MoveSet("o1^,oi2^,c1>");
         public static readonly MoveSet Knight = new MoveSet("~1/2");
         public static readonly MoveSet Bishop = new MoveSet("n<>");
         public static readonly MoveSet Rook = new MoveSet("n^|=");
