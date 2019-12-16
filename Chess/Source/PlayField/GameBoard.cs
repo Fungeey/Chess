@@ -3,6 +3,7 @@ using Chess.Source.Pieces;
 using Microsoft.Xna.Framework;
 using Nez;
 using System;
+using System.Collections.Generic;
 
 namespace Chess.Source.PlayField {
     sealed class GameBoard : SceneComponent, IUpdatable {
@@ -79,7 +80,8 @@ namespace Chess.Source.PlayField {
         public bool PieceExists(Point position) => pieceRenderer.pieces.ContainsKey(position);
         public void RemovePiece(Piece piece) => pieceRenderer.RemovePiece(piece);
         public void AddPiece(Piece piece) => pieceRenderer.AddPiece(piece);
-        public bool TryGetPiece(Point position, out Pieces.Piece piece) => pieceRenderer.pieces.TryGetValue(position, out piece);
+        public bool TryGetPiece(Point position, out Piece piece) => pieceRenderer.pieces.TryGetValue(position, out piece);
+        public Dictionary<Point, Piece> GetPieces() => pieceRenderer.pieces;
         public static bool InBounds(Point p) => (p.X >= 0 && p.Y >= 0 && p.X < Instance.Layout.width && p.Y < Instance.Layout.width);
         public static bool InBounds(Vector2 v) => v.WithinBounds(GetBoardRect());
         public static Rectangle GetBoardRect() => new Rectangle(Point.Zero, new Point(Instance.Layout.width * Constants.CellSize, Instance.Layout.height * Constants.CellSize));
