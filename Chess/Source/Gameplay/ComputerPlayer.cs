@@ -1,6 +1,5 @@
 ﻿using Chess.Source.Movement;
 using Chess.Source.PlayField;
-using Microsoft.Xna.Framework;
 using Nez;
 using System.Collections.Generic;
 
@@ -13,11 +12,14 @@ namespace Chess.Source.Gameplay {
             cells.RemoveAll(c => c.piece.color != TurnManager.CurrentColor);
 
             Cell cell;
-            List<Point> moves;
+            List<Move> moves;
             while((moves = MoveGenerator.GenerateMoves(cell = cells[Random.NextInt(cells.Count)])).Count != 0) { 
                 var move = moves[Random.NextInt(moves.Count)];
-                GameBoard.Instance.TryGetPiece(move, out var piece);
-                turn = new Turn(cell, new Cell(move, piece));
+                GameBoard.Instance.TryGetPiece(move.targetPosition, out var piece);
+
+                turn = new Turn(cell, new Cell(move.targetPosition, piece)) {
+                    extraCaptures = move.extraCaptures
+                };
                 return true;
             }
             return false;

@@ -27,7 +27,7 @@ namespace Chess.Source.PlayField {
 
 		private class SelectionRendererComponent : RenderableComponent {
 			public Cell cell;
-			public List<Point> moves;
+			public List<Move> moves;
 
 			public override float Height => Constants.CellSize;
 			public override float Width => Constants.CellSize;
@@ -48,9 +48,8 @@ namespace Chess.Source.PlayField {
 				if(moves == null || !TurnManager.selectedCell.HasValue)
 					return;
 
-				foreach(Point p in this.moves) {
-					batcher.DrawRect(GetCellRectangle(p), new Color(Color.DarkGreen, 0.5f));
-				}
+				foreach(Move m in this.moves)
+					batcher.DrawRect(GetCellRectangle(m.targetPosition), new Color(Color.DarkGreen, 0.5f));
 			}
 
 			private void DrawMouseOverlay(Batcher batcher, Camera camera) {
@@ -65,7 +64,7 @@ namespace Chess.Source.PlayField {
 			private Rectangle GetCellRectangle(Point position) => new Rectangle(GameBoard.BoardToWorld(position).RoundToPoint(), Constants.CellArea);
 
 			public void SetPiece(Cell cell) {
-				if(this.cell.position == cell.position)
+				if(this.cell == cell)
 					return;
 
 				this.cell = cell;

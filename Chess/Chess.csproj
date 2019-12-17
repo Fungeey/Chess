@@ -54,6 +54,7 @@
     <Compile Include="Source\Gameplay\TurnManager.cs" />
     <Compile Include="Source\InputHandling\InputEventManager.cs" />
     <Compile Include="Source\Movement\LeaperMoveDefinition.cs" />
+    <Compile Include="Source\Movement\Move.cs" />
     <Compile Include="Source\Movement\MoveDefinition.cs" />
     <Compile Include="Source\Movement\MoveGenerator.cs" />
     <Compile Include="Source\Movement\MoveSet.cs" />

@@ -2,13 +2,14 @@
 using Chess.Source.PlayField;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Chess.Source.Gameplay {
 	class HumanPlayer : IPlayer {
 
 		private Turn newTurn;
 		private bool startTurn = true;
-		private List<Point> moves;
+		private List<Move> moves;
 
 		public bool TurnCompleted(out Turn? turn) {
 			turn = null;
@@ -35,13 +36,15 @@ namespace Chess.Source.Gameplay {
 				}
 
 				// End is same as start, cancel
-				if(newTurn.start.position == c.position || !moves.Contains(c.position)) {
+				if(newTurn.start == c || !moves.Where(m => m.targetPosition == c.position).Any()) {
 					startTurn = true;
 					return false;
 				}
 
 				// Turn finished
 				newTurn.end = c;
+				newTurn.extraCaptures = moves.Find(m => m.targetPosition == c.position).extraCaptures;
+
 				turn = newTurn;
 				TurnManager.selectedCell = null;
 

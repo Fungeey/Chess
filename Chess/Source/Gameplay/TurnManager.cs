@@ -1,6 +1,7 @@
 ﻿using Chess.Source.Pieces;
 using Chess.Source.PlayField;
 using Nez;
+using System;
 using System.Collections.Generic;
 
 namespace Chess.Source.Gameplay {
@@ -58,6 +59,11 @@ namespace Chess.Source.Gameplay {
 
             CurrentColor = CurrentColor == PieceColor.Black ? PieceColor.White : PieceColor.Black;
             turn.start.piece.HasMoved = true;
+
+            turn.start.piece.DidPawnJump =
+                GameBoard.Instance.Layout == BoardLayout.DefaultLayout &&
+                turn.start.piece.type == PieceType.Pawn &&
+                Math.Abs(turn.end.position.Y - turn.start.position.Y) == 2;
 
             turns.Add(turn);
             board.ExecuteTurn(turn);

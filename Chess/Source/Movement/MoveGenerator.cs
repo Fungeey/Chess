@@ -1,4 +1,5 @@
-﻿using Chess.Source.PlayField;
+﻿using Chess.Source.Pieces;
+using Chess.Source.PlayField;
 using Microsoft.Xna.Framework;
 using Nez;
 using System;
@@ -8,13 +9,18 @@ using System.Linq;
 namespace Chess.Source.Movement {
     static class MoveGenerator {
 
-        public static List<Point> GenerateMoves(Cell cell) {
+        public static List<Move> GenerateMoves(Cell cell) {
             Insist.IsNotNull(cell);
             Insist.IsNotNull(cell.piece);
 
-            List<Point> moves = new List<Point>();
+            List<Move> moves = new List<Move>();
+            var topColor = GameBoard.Instance.Layout.topColor;
 
             foreach(MoveDefinition moveDef in cell.piece.type.moveSet.moves) {
+
+                if(GameBoard.Instance.Layout == BoardLayout.DefaultLayout) {
+                    GetEnPassentMoves(cell, moves, topColor);
+                }
 
                 if(moveDef is LeaperMoveDefinition) {
                     moves.AddRange(AddLeaperMoves(moveDef, cell, (moveDef as LeaperMoveDefinition).leapDistance));
@@ -27,8 +33,23 @@ namespace Chess.Source.Movement {
             return moves;
         }
 
-        private static IEnumerable<Point> AddBasicMoves(Cell cell, MoveDefinition moveDef) {
-            var moves = new List<Point>();
+        private static void GetEnPassentMoves(Cell cell, List<Move> moves, PieceColor topColor) {
+            var leftOffset = cell.position + new Point(-1, 0);
+            var rightOffset = cell.position + new Point(1, 0);
+
+            if(cell.piece.color == topColor && cell.position.Y == 4 || cell.piece.color != topColor && cell.position.Y == 3) {
+                var checkDirection = cell.position.Y == 3 ? -1 : 1;
+
+                if(GameBoard.Instance.TryGetPiece(leftOffset, out var left) && left.DidPawnJump)
+                    moves.Add(new Move(cell.position + new Point(-1, checkDirection), new Cell(rightOffset, left)));
+
+                if(GameBoard.Instance.TryGetPiece(rightOffset, out var right) && right.DidPawnJump)
+                    moves.Add(new Move(cell.position + new Point(1, checkDirection), new Cell(rightOffset, right)));
+            }
+        }
+
+        private static IEnumerable<Move> AddBasicMoves(Cell cell, MoveDefinition moveDef) {
+            var moves = new List<Move>();
             bool isTopColor = cell.piece.color == GameBoard.Instance.Layout.topColor;
 
             foreach(MoveDirection dir in Enum.GetValues(typeof(MoveDirection))) {
@@ -49,7 +70,15 @@ namespace Chess.Source.Movement {
             return moves;
         }
 
-        private static List<Point> AddLeaperMoves(MoveDefinition moveDef, Cell start, Point leapOffset) {
+        private static List<Move> AddLeaperMoves(MoveDefinition moveDef, Cell start, Point leapOffset) {
+            //var points = new List<Point>();
+            //for(int i = -1; i <= 1; i++) {
+            //    for(int j = -1; j <=1; j++) {
+            //        points.Add(start.position + new Point(leapOffset.X * i, leapOffset.Y * j));
+            //        points.Add(start.position + new Point(leapOffset.Y * i, leapOffset.X * j));
+            //    }
+            //}
+
             var points = new List<Point>() {
                 start.position + new Point(leapOffset.X, leapOffset.Y),
                 start.position + new Point(-leapOffset.X, leapOffset.Y),
@@ -64,23 +93,23 @@ namespace Chess.Source.Movement {
             points.RemoveAll(p => !GameBoard.InBounds(p));
             points.RemoveAll(p => GameBoard.Instance.TryGetPiece(p, out var piece) && piece.color == start.piece.color);
 
-            return FilterMoves(moveDef, points, start);
+            return FilterMoves(moveDef, points.Select(p => new Move(p)).ToList(), start);
         }
 
-        private static List<Point> FilterMoves(MoveDefinition moveDef, List<Point> cells, Cell cell) {
+        private static List<Move> FilterMoves(MoveDefinition moveDef, List<Move> moves, Cell cell) {
             if(moveDef.condition.HasFlag(MoveCondition.Initial) && cell.piece.HasMoved)
-                return new List<Point>();
+                return new List<Move>();
 
             if(moveDef.condition.HasFlag(MoveCondition.CaptureOnly))
-                cells.RemoveAll(point => !GameBoard.Instance.CellOccupied(point));
+                moves.RemoveAll(move => !GameBoard.Instance.CellOccupied(move.targetPosition));
             
             if(moveDef.condition.HasFlag(MoveCondition.NotCaptureOnly))
-                cells.RemoveAll(point => GameBoard.Instance.CellOccupied(point));
+                moves.RemoveAll(move => GameBoard.Instance.CellOccupied(move.targetPosition));
 
-            return cells;
+            return moves;
         }
 
-        private static IEnumerable<Point> GetCellsInDirection(Cell start, int num, Point offset) {
+        private static IEnumerable<Move> GetCellsInDirection(Cell start, int num, Point offset) {
             Point p = start.position + offset;
             for(int i = 0; i < num; i++) {
                 if(!GameBoard.InBounds(p))
@@ -88,12 +117,12 @@ namespace Chess.Source.Movement {
 
                 if(GameBoard.Instance.TryGetPiece(p, out var piece)) {
                     if(piece.color != start.piece.color)
-                        yield return p;
+                        yield return new Move(p);
 
                     break;
                 }
 
-                yield return p;
+                yield return new Move(p);
                 p += offset;
             }   
         }

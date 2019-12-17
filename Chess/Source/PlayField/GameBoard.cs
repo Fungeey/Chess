@@ -68,6 +68,9 @@ namespace Chess.Source.PlayField {
 
             turn.start.piece.boardPosition = turn.end.position;
             AddPiece(turn.end.position, turn.start.piece);
+
+            if(turn.extraCaptures != null)
+                turn.extraCaptures.ForEach(c => RemovePiece(c.piece));
         }
 
         #region Transformations

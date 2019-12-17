@@ -7,7 +7,9 @@ namespace Chess.Source.Pieces {
 		public PieceType type;
 		public PieceColor color;
 		public Point boardPosition;
+
 		public bool HasMoved = false;
+		public bool DidPawnJump = false;
 
 		public Texture2D texture;
 
