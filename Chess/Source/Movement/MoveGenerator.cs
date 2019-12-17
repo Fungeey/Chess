@@ -14,12 +14,11 @@ namespace Chess.Source.Movement {
             Insist.IsNotNull(cell.piece);
 
             List<Move> moves = new List<Move>();
-            var topColor = GameBoard.Instance.Layout.topColor;
 
             foreach(MoveDefinition moveDef in cell.piece.type.moveSet.moves) {
 
                 if(GameBoard.Instance.Layout == BoardLayout.DefaultLayout) {
-                    GetEnPassentMoves(cell, moves, topColor);
+                    GetEnPassentMoves(cell, moves);
                 }
 
                 if(moveDef is LeaperMoveDefinition) {
@@ -33,9 +32,13 @@ namespace Chess.Source.Movement {
             return moves;
         }
 
-        private static void GetEnPassentMoves(Cell cell, List<Move> moves, PieceColor topColor) {
+        private static void GetEnPassentMoves(Cell cell, List<Move> moves) {
+            if(cell.piece.type != PieceType.Pawn)
+                return;
+
             var leftOffset = cell.position + new Point(-1, 0);
             var rightOffset = cell.position + new Point(1, 0);
+            var topColor = GameBoard.Instance.Layout.topColor;
 
             if(cell.piece.color == topColor && cell.position.Y == 4 || cell.piece.color != topColor && cell.position.Y == 3) {
                 var checkDirection = cell.position.Y == 3 ? -1 : 1;
@@ -71,24 +74,14 @@ namespace Chess.Source.Movement {
         }
 
         private static List<Move> AddLeaperMoves(MoveDefinition moveDef, Cell start, Point leapOffset) {
-            //var points = new List<Point>();
-            //for(int i = -1; i <= 1; i++) {
-            //    for(int j = -1; j <=1; j++) {
-            //        points.Add(start.position + new Point(leapOffset.X * i, leapOffset.Y * j));
-            //        points.Add(start.position + new Point(leapOffset.Y * i, leapOffset.X * j));
-            //    }
-            //}
 
-            var points = new List<Point>() {
-                start.position + new Point(leapOffset.X, leapOffset.Y),
-                start.position + new Point(-leapOffset.X, leapOffset.Y),
-                start.position + new Point(leapOffset.X, -leapOffset.Y),
-                start.position + new Point(-leapOffset.X, -leapOffset.Y),
-                start.position + new Point(leapOffset.Y, leapOffset.X),
-                start.position + new Point(-leapOffset.Y, leapOffset.X),
-                start.position + new Point(leapOffset.Y, -leapOffset.X),
-                start.position + new Point(-leapOffset.Y, -leapOffset.X)
-            };
+            var points = new List<Point>();
+            for(int i = -1; i <= 1; i += 2) {
+                for(int j = -1; j <= 1; j += 2) {
+                    points.Add(start.position + new Point(leapOffset.X * i, leapOffset.Y * j));
+                    points.Add(start.position + new Point(leapOffset.Y * i, leapOffset.X * j));
+                }
+            }
 
             points.RemoveAll(p => !GameBoard.InBounds(p));
             points.RemoveAll(p => GameBoard.Instance.TryGetPiece(p, out var piece) && piece.color == start.piece.color);
@@ -102,7 +95,7 @@ namespace Chess.Source.Movement {
 
             if(moveDef.condition.HasFlag(MoveCondition.CaptureOnly))
                 moves.RemoveAll(move => !GameBoard.Instance.CellOccupied(move.targetPosition));
-            
+
             if(moveDef.condition.HasFlag(MoveCondition.NotCaptureOnly))
                 moves.RemoveAll(move => GameBoard.Instance.CellOccupied(move.targetPosition));
 
@@ -124,12 +117,12 @@ namespace Chess.Source.Movement {
 
                 yield return new Move(p);
                 p += offset;
-            }   
+            }
         }
 
         private static IEnumerable<Point> GetDirectionOffset(MoveDirection direction) {
             switch(direction) {
-                case MoveDirection.CardinalForwards: yield return new Point(0,-1); break;
+                case MoveDirection.CardinalForwards: yield return new Point(0, -1); break;
                 case MoveDirection.CardinalBackwards: yield return new Point(0, 1); break;
                 case MoveDirection.CardinalSideways: { yield return new Point(-1, 0); yield return new Point(1, 0); } break;
                 case MoveDirection.DiagonalForwards: { yield return new Point(-1, -1); yield return new Point(1, -1); } break;
