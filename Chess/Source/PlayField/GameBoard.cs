@@ -17,7 +17,7 @@ namespace Chess.Source.PlayField {
         private GameBoard() { }
 
         public BoardLayout Layout { get; private set; }
-        public Cell? ClickedCell { get; private set; }
+        public Cell ClickedCell { get; private set; }
 
         private PieceRenderer pieceRenderer;
         private BoardRenderer boardRenderer;
@@ -34,6 +34,10 @@ namespace Chess.Source.PlayField {
         public void Load(BoardLayout layout) {
             Layout = layout;
             cells = new List<Cell>();
+
+            for(int i = 0; i < layout.width; i++)
+                for(int j = 0; j < layout.height; j++)
+                    cells.Add(new Cell(new Point(i, j)));
 
             foreach(PieceDefinition p in layout.pieces) {
                 Piece e = p.ToEntity();
@@ -61,16 +65,17 @@ namespace Chess.Source.PlayField {
         }
 
         public void ExecuteTurn(Turn turn) {
-            RemovePiece(turn.start.piece);
 
             if(TryGetPiece(turn.end.position, out Piece toCapture))
-                RemovePiece(toCapture);
+                RemovePieceAtCell(turn.end);
 
             turn.start.piece.boardPosition = turn.end.position;
             AddPiece(turn.end.position, turn.start.piece);
 
             if(turn.extraCaptures != null)
-                turn.extraCaptures.ForEach(c => RemovePiece(c.piece));
+                turn.extraCaptures.ForEach(c => RemovePieceAtCell(c));
+
+            RemovePieceAtCell(turn.start);
         }
 
         #region Transformations
@@ -84,17 +89,14 @@ namespace Chess.Source.PlayField {
         #endregion
 
         #region Board Api
-        public bool CellOccupied(Point position) => cells.Where(c => c.position == position).Any();
-        public void RemovePiece(Piece piece) => cells.RemoveAll(c => c.piece == piece);
-        public void AddPiece(Point position, Piece piece) => cells.Add(new Cell(position, piece));
-        public void AddCell(Cell cell) => cells.Add(cell);
+        public Cell GetCell(Point position) => cells.Find(c => c.position == position);
+        public void AddPiece(Point position, Piece piece) => GetCell(position).piece = piece;
+        public bool CellOccupied(Point position) => GetCell(position).piece != null;
+        public void RemovePieceAtCell(Cell cell) => GetCell(cell.position).piece = null;
         public bool TryGetPiece(Point position, out Piece piece) {
-            piece = null;
-            if(!CellOccupied(position))
-                return false;
-
-            piece = cells.Find(c => c.position == position).piece;
-            return true;
+            var cell = GetCell(position);
+            piece = cell.piece;
+            return piece != null;
         }
         public List<Cell> GetCells() => new List<Cell>(cells);
         public static bool InBounds(Point p) => (p.X >= 0 && p.Y >= 0 && p.X < Instance.Layout.width && p.Y < Instance.Layout.width);

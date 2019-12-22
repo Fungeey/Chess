@@ -9,6 +9,7 @@ namespace Chess.Source.Gameplay {
         public bool TurnCompleted(out Turn? turn) {
             turn = null;
             var cells = GameBoard.Instance.GetCells();
+            cells.RemoveAll(c => c.piece == null);
             cells.RemoveAll(c => c.piece.color != TurnManager.CurrentColor);
 
             Cell cell;

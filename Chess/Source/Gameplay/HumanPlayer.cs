@@ -13,10 +13,10 @@ namespace Chess.Source.Gameplay {
 
 		public bool TurnCompleted(out Turn? turn) {
 			turn = null;
-			if(!GameBoard.Instance.ClickedCell.HasValue)
+			if(GameBoard.Instance.ClickedCell == null)
 				return false;
 
-			Cell c = GameBoard.Instance.ClickedCell.Value;
+			Cell c = GameBoard.Instance.ClickedCell;
 
 			if(startTurn && c.piece != null) {
 				if(c.piece.color != TurnManager.CurrentColor)

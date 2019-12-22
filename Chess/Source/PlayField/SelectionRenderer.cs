@@ -21,8 +21,8 @@ namespace Chess.Source.PlayField {
 		public override void Update() {
 			base.Update();
 
-			if(TurnManager.selectedCell.HasValue)
-				renderer.SetPiece(TurnManager.selectedCell.Value);
+			if(TurnManager.selectedCell != null)
+				renderer.SetPiece(TurnManager.selectedCell);
 		}
 
 		private class SelectionRendererComponent : RenderableComponent {
@@ -45,7 +45,7 @@ namespace Chess.Source.PlayField {
 			}
 
 			private void DrawPossibleMoves(Batcher batcher) {
-				if(moves == null || !TurnManager.selectedCell.HasValue)
+				if(moves == null || TurnManager.selectedCell == null)
 					return;
 
 				foreach(Move m in this.moves)

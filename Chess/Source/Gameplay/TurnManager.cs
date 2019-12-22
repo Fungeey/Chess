@@ -8,7 +8,7 @@ namespace Chess.Source.Gameplay {
     class TurnManager : SceneComponent, IUpdatable {
 
         public static PieceColor CurrentColor { get; private set; }
-        public static Cell? selectedCell;
+        public static Cell selectedCell;
 
         private readonly List<Turn> turns;
         private readonly List<IPlayer> players;
