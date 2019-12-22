@@ -1,4 +1,5 @@
-﻿using Chess.Source.Pieces;
+﻿using Chess.Source.Gameplay;
+using Chess.Source.Pieces;
 using Chess.Source.PlayField;
 using Microsoft.Xna.Framework;
 using Nez;
@@ -17,7 +18,8 @@ namespace Chess.Source.Movement {
 
             foreach(MoveDefinition moveDef in cell.piece.type.moveSet.moves) {
 
-                if(GameBoard.Instance.Layout == BoardLayout.DefaultLayout) {
+                if(GameBoard.Instance.Layout == BoardLayout.DefaultLayout || GameBoard.Instance.Layout == BoardLayout.FlippedDefaultLayout) {
+                    GetCastlingMoves(cell, moves);
                     GetEnPassentMoves(cell, moves);
                 }
 
@@ -30,6 +32,53 @@ namespace Chess.Source.Movement {
             }
 
             return moves;
+        }
+
+        private static void GetCastlingMoves(Cell cell, List<Move> moves) {
+            if(cell.piece.type != PieceType.King)
+                return;
+
+            if(cell.piece.HasMoved)
+                return;
+
+            void AddMoves(int direction) {
+                if(CanCastle(cell, direction)) {
+                    int rookStart = (direction == 1 ? 7 : 0);
+                    int rookEnd = (direction == 1 ? 5 : 3);
+
+                    if(cell.position.X == 3)
+                        rookEnd -= 1;
+
+                    var rookMove = new Turn(
+                        GameBoard.Instance.GetCell(new Point(rookStart, cell.position.Y)),
+                        GameBoard.Instance.GetCell(new Point(rookEnd, cell.position.Y))
+                    );
+
+                    moves.Add(new Move(cell.position + new Point(2 * Math.Sign(direction), 0), rookMove));
+                }
+            }
+
+            AddMoves(-1);
+            AddMoves(1);
+        }
+
+        private static bool CanCastle(Cell cell, int direction) {
+            int rookX = (direction == 1 ? 7 : 0);
+            {
+                var checkRook = new Point(rookX, cell.position.Y);
+
+                if(GameBoard.Instance.TryGetPiece(checkRook, out var piece)
+                        && piece.type == PieceType.Rook && piece.HasMoved
+                    || !GameBoard.Instance.CellOccupied(checkRook))
+                    return false;
+            }
+
+            for(int i = cell.position.X + Math.Sign(direction); i != rookX; i += Math.Sign(direction)) {
+                if(GameBoard.Instance.CellOccupied(new Point(i, cell.position.Y)))
+                    return false;
+            }
+
+            return true;
         }
 
         private static void GetEnPassentMoves(Cell cell, List<Move> moves) {

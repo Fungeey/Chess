@@ -10,6 +10,12 @@ namespace Chess.Source.PlayField {
 			.AddRow(8, 6, PieceType.Pawn, PieceColor.White)
 			.AddRowSequence(8, 7, PieceColor.White, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen, PieceType.King, PieceType.Bishop, PieceType.Knight, PieceType.Rook);
 
+		public static readonly BoardLayout FlippedDefaultLayout = New(8, 8, PieceColor.White)
+			.AddRowSequence(8, 0, PieceColor.White, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.King, PieceType.Queen, PieceType.Bishop, PieceType.Knight, PieceType.Rook)
+			.AddRow(8, 1, PieceType.Pawn, PieceColor.White)
+			.AddRow(8, 6, PieceType.Pawn, PieceColor.Black)
+			.AddRowSequence(8, 7, PieceColor.Black, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.King, PieceType.Queen, PieceType.Bishop, PieceType.Knight, PieceType.Rook);
+
 		public static readonly BoardLayout MicroChess = New(4, 5, PieceColor.Black)
 			.AddRowSequence(4, 0, PieceColor.Black, PieceType.King, PieceType.Knight, PieceType.Bishop, PieceType.Rook)
 			.Add(new Point(0, 1), PieceType.Pawn, PieceColor.Black)
@@ -33,7 +39,7 @@ namespace Chess.Source.PlayField {
 		}
 
 		private BoardLayout Add(Point position, PieceType type, PieceColor color) {
-			if(position.X >= 0 && position.X < width && position.Y >= 0 && position.Y < height)
+			if(position.X >= 0 && position.X < width && position.Y >= 0 && position.Y < height && type != PieceType.Empty)
 				pieces.Add(new PieceDefinition(type, color, position));
 
 			return this;

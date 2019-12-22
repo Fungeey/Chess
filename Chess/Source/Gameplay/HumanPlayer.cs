@@ -42,8 +42,11 @@ namespace Chess.Source.Gameplay {
 				}
 
 				// Turn finished
+				var move = moves.Find(m => m.targetPosition == c.position);
+
 				newTurn.end = c;
-				newTurn.extraCaptures = moves.Find(m => m.targetPosition == c.position).extraCaptures;
+				newTurn.extraCaptures = move.extraCaptures;
+				newTurn.extraTurns = move.extraTurns;
 
 				turn = newTurn;
 				TurnManager.selectedCell = null;

@@ -2,6 +2,7 @@
 
 namespace Chess.Source.Pieces {
 	class PieceType {
+		public static readonly PieceType Empty = new PieceType("Empty", -1, null);
 		public static readonly PieceType Pawn = new PieceType("Pawn", 1, MoveSet.Pawn);
 		public static readonly PieceType Knight = new PieceType("Knight", 3, MoveSet.Knight);
 		public static readonly PieceType Bishop = new PieceType("Bishop", 3, MoveSet.Bishop);

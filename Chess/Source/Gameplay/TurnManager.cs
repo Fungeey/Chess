@@ -68,6 +68,9 @@ namespace Chess.Source.Gameplay {
             turns.Add(turn);
             board.ExecuteTurn(turn);
 
+            if(turn.extraTurns != null)
+                turn.extraTurns.ForEach(t => board.ExecuteTurn(t));
+
             CurrentPlayer = players[++playerNum % players.Count];
         }
     }
