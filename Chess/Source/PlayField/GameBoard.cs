@@ -94,6 +94,10 @@ namespace Chess.Source.PlayField {
         public bool CellOccupied(Point position) => GetCell(position).piece != null;
         public void RemovePieceAtCell(Cell cell) => GetCell(cell.position).piece = null;
         public bool TryGetPiece(Point position, out Piece piece) {
+            if(!InBounds(position)) {
+                piece = null;
+                return false;
+            }
             var cell = GetCell(position);
             piece = cell.piece;
             return piece != null;

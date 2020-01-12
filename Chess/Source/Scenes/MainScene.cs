@@ -12,7 +12,7 @@ namespace Chess.Source.Scenes {
 			base.Initialize();
 
 			AddSceneComponent(GameBoard.Instance);
-			AddSceneComponent(new TurnManager(new HumanPlayer(), new ComputerPlayer()));
+			AddSceneComponent(new TurnManager(new HumanPlayer(), new HumanPlayer()));
 			AddEntityProcessor(new InputEventManager());
 
 			AddRenderer(new DebugGridRenderer());

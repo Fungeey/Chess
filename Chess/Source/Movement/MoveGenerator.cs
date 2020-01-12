@@ -93,7 +93,7 @@ namespace Chess.Source.Movement {
                 var checkDirection = cell.position.Y == 3 ? -1 : 1;
 
                 if(GameBoard.Instance.TryGetPiece(leftOffset, out var left) && left.DidPawnJump)
-                    moves.Add(new Move(cell.position + new Point(-1, checkDirection), new Cell(rightOffset, left)));
+                    moves.Add(new Move(cell.position + new Point(-1, checkDirection), new Cell(leftOffset, left)));
 
                 if(GameBoard.Instance.TryGetPiece(rightOffset, out var right) && right.DidPawnJump)
                     moves.Add(new Move(cell.position + new Point(1, checkDirection), new Cell(rightOffset, right)));
