@@ -17,8 +17,6 @@ namespace Chess.Source.Gameplay {
 
         private GameBoard board;
 
-        private event Action OnTurnExecuted;
-
         public TurnManager(params IPlayer[] players) {
             this.players = new List<IPlayer>();
 
@@ -65,11 +63,6 @@ namespace Chess.Source.Gameplay {
                 GameBoard.Instance.Layout == BoardLayout.DefaultLayout &&
                 turn.start.piece.type == PieceType.Pawn &&
                 Math.Abs(turn.end.position.Y - turn.start.position.Y) == 2;
-
-            OnTurnExecuted?.Invoke();
-
-            if(turn.start.piece.DidPawnJump)
-                OnTurnExecuted += () => turn.start.piece.DidPawnJump = false;
 
             turns.Add(turn);
             board.ExecuteTurn(turn);

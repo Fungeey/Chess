@@ -65,7 +65,6 @@ namespace Chess.Source.PlayField {
         }
 
         public void ExecuteTurn(Turn turn) {
-
             if(TryGetPiece(turn.end.position, out Piece toCapture))
                 RemovePieceAtCell(turn.end);
 
@@ -76,6 +75,17 @@ namespace Chess.Source.PlayField {
                 turn.extraCaptures.ForEach(c => RemovePieceAtCell(c));
 
             RemovePieceAtCell(turn.start);
+
+            UpdatePawns(turn.start.piece);
+        }
+
+        void UpdatePawns(Piece piece) {
+            foreach(Cell cell in cells) {
+                if(cell.piece == piece || cell.piece == null)
+                    continue;
+                if(cell.piece.type == PieceType.Pawn)
+                    cell.piece.DidPawnJump = false;
+            }
         }
 
         #region Transformations
