@@ -19,7 +19,8 @@ namespace Chess.Source.Gameplay {
                 GameBoard.Instance.TryGetPiece(move.targetPosition, out var piece);
 
                 turn = new Turn(cell, new Cell(move.targetPosition, piece)) {
-                    extraCaptures = move.extraCaptures
+                    extraCaptures = move.extraCaptures,
+                    extraTurns = move.extraTurns
                 };
                 return true;
             }

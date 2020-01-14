@@ -75,11 +75,9 @@ namespace Chess.Source.PlayField {
                 turn.extraCaptures.ForEach(c => RemovePieceAtCell(c));
 
             RemovePieceAtCell(turn.start);
-
-            UpdatePawns(turn.start.piece);
         }
 
-        void UpdatePawns(Piece piece) {
+        public void UpdatePawns(Piece piece) {
             foreach(Cell cell in cells) {
                 if(cell.piece == piece || cell.piece == null)
                     continue;

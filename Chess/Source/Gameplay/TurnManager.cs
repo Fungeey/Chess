@@ -70,6 +70,9 @@ namespace Chess.Source.Gameplay {
             if(turn.extraTurns != null)
                 turn.extraTurns.ForEach(t => board.ExecuteTurn(t));
 
+            if(CurrentPlayer == players[0])
+                GameBoard.Instance.UpdatePawns(turn.start.piece);
+
             CurrentPlayer = players[++playerNum % players.Count];
         }
     }
