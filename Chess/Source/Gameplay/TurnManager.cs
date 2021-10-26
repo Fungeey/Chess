@@ -7,73 +7,56 @@ using System.Collections.Generic;
 namespace Chess.Source.Gameplay {
     class TurnManager : SceneComponent, IUpdatable {
 
-        public static PieceColor CurrentColor { get; private set; }
-        public static Cell selectedCell;
+		public static TurnManager Instance { get => _instance; set => _instance = value; }
+		private static TurnManager _instance;
+
+		public Cell selectedCell;
 
         private readonly List<Turn> turns;
-        private readonly List<IPlayer> players;
-        public IPlayer CurrentPlayer { get; private set; }
-        private int playerNum;
+		private Player player1, player2;
+        public Player CurrentPlayer { get; private set; }
 
-        private GameBoard board;
+		public TurnManager(Player player1, Player player2) {
+			if(_instance == null)
+				_instance = this;
 
-        public TurnManager(params IPlayer[] players) {
-            this.players = new List<IPlayer>();
+			this.player1 = CurrentPlayer = player1;
+			this.player2 = player2;
 
-            foreach(IPlayer p in players)
-                AddPlayer(p);
+			CurrentPlayer.StartTurn();
+			CurrentPlayer.OnTurnCompleted += ExecuteTurn;
 
-            turns = new List<Turn>();
-            CurrentColor = PieceColor.White;
-        }
+			player1.turnManager = this;
+			player2.turnManager = this;
 
-        public override void OnEnabled() {
-            base.OnEnabled();
-
-            board = Scene.GetSceneComponent<GameBoard>();
+			turns = new List<Turn>();
         }
 
         public override void Update() {
             base.Update();
-
-            if(CurrentPlayer == null)
-                return;
-
-            if(CurrentPlayer.TurnCompleted(out var turn))
-                ExecuteTurn(turn.Value);
-        }
-
-        public void AddPlayer(IPlayer player) {
-            if(players.Contains(player))
-                return;
-
-            players.Add(player);
-            if(CurrentPlayer == null)
-                CurrentPlayer = players[0];
+			CurrentPlayer.DoTurn();
         }
 
         public void ExecuteTurn(Turn turn) {
-            if(turn.end.piece != null && turn.start.piece.color == turn.end.piece.color)
-                return;
-
-            CurrentColor = CurrentColor == PieceColor.Black ? PieceColor.White : PieceColor.Black;
-            turn.start.piece.HasMoved = true;
+			turn.start.piece.HasMoved = true;
 
             turn.start.piece.DidPawnJump =
-                GameBoard.Instance.Layout == BoardLayout.DefaultLayout &&
-                turn.start.piece.type == PieceType.Pawn &&
-                Math.Abs(turn.end.position.Y - turn.start.position.Y) == 2;
+                GameBoard.Instance.Layout == BoardLayout.DefaultLayout &&			// pawn jumping only on a default board
+                turn.start.piece.type == PieceType.Pawn &&							// is a pawn
+                Math.Abs(turn.end.position.Y - turn.start.position.Y) == 2;			// moved two squares in one turn
 
-            turns.Add(turn);
-            board.ExecuteTurn(turn);
+			MovePieces(turn);
 
-            if(turn.extraTurns != null)
-                turn.extraTurns.ForEach(t => board.ExecuteTurn(t));
+			CurrentPlayer.OnTurnCompleted = null;									//unsubscribe from old player
+			CurrentPlayer = CurrentPlayer == player1 ? player2 : player1;
+			CurrentPlayer.OnTurnCompleted += ExecuteTurn;							//subscribe to new player
+			CurrentPlayer.StartTurn();
+		}
 
-            if(CurrentPlayer == players[0])
-                GameBoard.Instance.UpdatePawns(turn.start.piece);
-
-            CurrentPlayer = players[++playerNum % players.Count];
-        }
+		private void MovePieces(Turn turn) {
+			turn.end.piece = turn.start.piece;
+			turn.start.piece = null;
+			turns.Add(turn);
+		}
     }
 }

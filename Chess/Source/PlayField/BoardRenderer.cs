@@ -4,7 +4,6 @@ using Nez;
 namespace Chess.Source.PlayField {
 	class BoardRenderer : Entity {
 
-		public int width, height;
 		BoardRendererComponent renderComponent;
 
 		public BoardRenderer() {
@@ -14,40 +13,27 @@ namespace Chess.Source.PlayField {
 		public override void OnAddedToScene() {
 			base.OnAddedToScene();
 
-			AddComponent(renderComponent = new BoardRendererComponent(width, height));
-		}
-
-		public void SetSize(int width, int height) {
-			this.width = width;
-			this.height = height;
-
-			if(renderComponent != null)
-				renderComponent = new BoardRendererComponent(width, height);
+			AddComponent(renderComponent = new BoardRendererComponent());
 		}
 
 		private class BoardRendererComponent : RenderableComponent {
-			public override RectangleF Bounds => new RectangleF(new Vector2(0, 0), new Vector2(width, height) * Constants.CellSize);
+			public override RectangleF Bounds => new RectangleF(new Vector2(0, 0), new Vector2(GameBoard.Instance.Layout.width, GameBoard.Instance.Layout.height) * Constants.CellSize);
 
-			public readonly int width, height;
-
-			public BoardRendererComponent(int width, int height) {
-				this.width = width;
-				this.height = height;
-
+			public BoardRendererComponent() {
 				this.RenderLayer = Constants.BoardRenderLayer;
 			}
 
 			public override void Render(Batcher batcher, Camera camera) {
 				batcher.DrawRect(GameBoard.GetBoardRect(), Constants.LightTile);
 
-				for(int i = 0; i < width; i++) {
-					for(int j = 0; j < height; j++) {
+				for(int i = 0; i < GameBoard.Instance.Layout.width; i++) {
+					for(int j = 0; j < GameBoard.Instance.Layout.height; j++) {
 
 						if(i % 2 == 0 && j % 2 == 0 || i % 2 != 0 && j % 2 != 0)
 							continue;
 
 						batcher.DrawRect(new Rectangle(
-							GameBoard.BoardToWorld(new Point(i, j)).RoundToPoint(),
+							GameBoard.BoardToWorld(new Point(i, j)),
 							new Point(Constants.CellSize, Constants.CellSize)
 						), Constants.DarkTile);
 					}

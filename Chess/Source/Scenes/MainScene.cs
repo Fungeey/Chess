@@ -12,7 +12,7 @@ namespace Chess.Source.Scenes {
 			base.Initialize();
 
 			AddSceneComponent(GameBoard.Instance);
-			AddSceneComponent(new TurnManager(new HumanPlayer(), new ComputerPlayer()));
+			AddSceneComponent(new TurnManager(new ComputerPlayer(Pieces.PieceColor.White), new ComputerPlayer(Pieces.PieceColor.Black)));
 			AddEntityProcessor(new InputEventManager());
 
 			AddRenderer(new DebugGridRenderer());
@@ -25,7 +25,8 @@ namespace Chess.Source.Scenes {
 			GameBoard.Instance.Load(layout);
 
 			Camera.MinimumZoom = 0.2f;
-			Camera.ZoomOut(3);
+			Camera.MaximumZoom = 30;
+			Camera.ZoomOut(30);
 			Camera.Position = new Vector2((float)layout.width/2, (float)layout.height/2) * Constants.CellSize;
 		}
 	}

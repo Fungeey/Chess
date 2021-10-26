@@ -7,7 +7,6 @@ namespace Chess.Source.Movement {
     class Move {
         public Point targetPosition;
         public List<Cell> extraCaptures;
-        public List<Turn> extraTurns;
 
         public Move(Point targetPosition) {
             this.targetPosition = targetPosition;
@@ -20,7 +19,6 @@ namespace Chess.Source.Movement {
 
         public Move(Point targetPosition, List<Turn> extraTurns) {
             this.targetPosition = targetPosition;
-            this.extraTurns = extraTurns;
         }
 
         public Move(Point targetPosition, params Cell[] extraCaptures) {
@@ -30,7 +28,6 @@ namespace Chess.Source.Movement {
 
         public Move(Point targetPosition, params Turn[] extraTurns) {
             this.targetPosition = targetPosition;
-            this.extraTurns = new List<Turn>(extraTurns);
         }
     }
 }

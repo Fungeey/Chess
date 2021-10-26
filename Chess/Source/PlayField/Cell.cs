@@ -14,28 +14,5 @@ namespace Chess.Source.PlayField {
 			this.position = position;
 			this.piece = piece;
 		}
-
-		public static bool operator ==(Cell a, Cell b) {
-			if(a is null)
-				return b is null;
-
-			if(b is null)
-				return a is null;
-
-			return a.Equals(b);
-		}
-		public static bool operator !=(Cell a, Cell b) {
-			if(a is null)
-				return !(b is null);
-
-			if(b is null)
-				return !(a is null);
-
-			return !a.Equals(b);
-		}
-
-		public override bool Equals(object obj) {
-			return this.position == ((Cell)obj).position;
-		}
 	}
 }

@@ -17,7 +17,6 @@ namespace Chess.Source.PlayField {
         private GameBoard() { }
 
         public BoardLayout Layout { get; private set; }
-        public Cell ClickedCell { get; private set; }
 
         private PieceRenderer pieceRenderer;
         private BoardRenderer boardRenderer;
@@ -33,75 +32,43 @@ namespace Chess.Source.PlayField {
 
         public void Load(BoardLayout layout) {
             Layout = layout;
-            cells = new List<Cell>();
+			cells = Layout.CreateBoardLayout();
 
-            for(int i = 0; i < layout.width; i++)
-                for(int j = 0; j < layout.height; j++)
-                    cells.Add(new Cell(new Point(i, j)));
-
-            foreach(PieceDefinition p in layout.pieces) {
-                Piece e = p.ToEntity();
-                e.LoadTexture(Scene);
-                AddPiece(p.position, e);
+            foreach(Cell c in cells) {
+				if(c.piece != null)
+					c.piece.LoadTexture(Scene);
             }
-
-            boardRenderer.SetSize(layout.width, layout.height);
         }
 
         public override void Update() {
             base.Update();
-
-            ClickedCell = null;
-            if(Input.LeftMouseButtonPressed) {
-                Vector2 mousePos = Scene.Camera.ScreenToWorldPoint(Input.MousePosition);
-
-                if(mousePos.WithinBounds(GetBoardRect())) {
-                    Point boardPos = WorldToBoard(mousePos);
-                    TryGetPiece(boardPos, out var piece);
-
-                    ClickedCell = new Cell(boardPos, piece);
-                }
-            }
         }
 
-        public void ExecuteTurn(Turn turn) {
-            if(TryGetPiece(turn.end.position, out Piece toCapture))
-                RemovePieceAtCell(turn.end);
-
-            turn.start.piece.boardPosition = turn.end.position;
-            AddPiece(turn.end.position, turn.start.piece);
-
-            if(turn.extraCaptures != null)
-                turn.extraCaptures.ForEach(c => RemovePieceAtCell(c));
-
-            RemovePieceAtCell(turn.start);
-        }
-
-        public void UpdatePawns(Piece piece) {
-            foreach(Cell cell in cells) {
-                if(cell.piece == piece || cell.piece == null)
-                    continue;
-                if(cell.piece.type == PieceType.Pawn)
-                    cell.piece.DidPawnJump = false;
-            }
-        }
+		// If we move a pawn normally, set the DidPawnJump flag to be false so it can't jump again.
+        //public void UpdatePawns(Piece piece) {
+        //    foreach(Cell cell in cells) {
+        //        if(cell.piece == piece || cell.piece == null)
+        //            continue;
+        //        if(cell.piece.type == PieceType.Pawn)
+        //            cell.piece.DidPawnJump = false;
+        //    }
+        //}
 
         #region Transformations
-        public static Vector2 BoardToWorld(Point boardPos) {
-            return (boardPos.ToVector2()) * Constants.CellSize;
+        public static Point BoardToWorld(Point boardPos) {
+            return new Point(boardPos.X * Constants.CellSize, boardPos.Y * Constants.CellSize);
         }
 
         public static Point WorldToBoard(Vector2 worldPos) {
             return new Point((int)(worldPos.X / Constants.CellSize), (int)(worldPos.Y / Constants.CellSize));
         }
-        #endregion
+		#endregion
 
-        #region Board Api
-        public Cell GetCell(Point position) => cells.Find(c => c.position == position);
-        public void AddPiece(Point position, Piece piece) => GetCell(position).piece = piece;
-        public bool CellOccupied(Point position) => GetCell(position).piece != null;
-        public void RemovePieceAtCell(Cell cell) => GetCell(cell.position).piece = null;
-        public bool TryGetPiece(Point position, out Piece piece) {
+		#region Board Api
+		public bool CellOccupied(Point position) => GetCell(position).piece != null;
+		public void RemovePieceAtCell(Cell cell) => GetCell(cell.position).piece = null;
+		public Cell GetCell(Point position) => cells.Where(c => c.position == position).FirstOrDefault();
+        public bool TryGetPiece(Point position, out Piece piece) { // is there a cleaner way
             if(!InBounds(position)) {
                 piece = null;
                 return false;

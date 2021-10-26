@@ -7,6 +7,7 @@ using Nez;
 namespace Chess.Source.Rendering {
 	class DebugGridRenderer : DefaultRenderer {
 		static NezSpriteFont font;
+		TurnManager turnManager;
 
 		public override void OnAddedToScene(Scene scene) {
 			base.OnAddedToScene(scene);
@@ -16,9 +17,9 @@ namespace Chess.Source.Rendering {
 		}
 
 		protected override void DebugRender(Scene scene, Camera cam) {
-			//base.DebugRender(scene, cam);
-
 			var batcher = Graphics.Instance.Batcher;
+			if(turnManager == null)
+				turnManager = scene.GetSceneComponent<TurnManager>();
 
 			if (GameBoard.Instance.Layout == null)
 				return;
@@ -32,7 +33,7 @@ namespace Chess.Source.Rendering {
 
 			batcher.DrawString(font, GameBoard.WorldToBoard(cam.ScreenToWorldPoint(Input.MousePosition.RoundToPoint())).ToString(), new Vector2(0, -100), Color.Black);
 
-			batcher.DrawString(font, TurnManager.CurrentColor.ToString(), new Vector2(0, -200), Color.Black);
+			batcher.DrawString(font, turnManager.CurrentPlayer.color.ToString(), new Vector2(0, -200), Color.Black);
 		}
 	}
 }

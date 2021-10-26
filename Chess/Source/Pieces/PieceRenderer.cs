@@ -28,7 +28,7 @@ namespace Chess.Source.Pieces {
 				foreach(Cell cell in GameBoard.Instance.GetCells()) {
 					if(cell.piece == null)
 						continue;
-					Rectangle r = new Rectangle(GameBoard.BoardToWorld(cell.piece.boardPosition).RoundToPoint(), new Point(Constants.CellSize, Constants.CellSize));
+					Rectangle r = new Rectangle(GameBoard.BoardToWorld(cell.position), new Point(Constants.CellSize, Constants.CellSize));
 					batcher.Draw(cell.piece.texture, r);
 				}
 			}

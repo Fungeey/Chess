@@ -18,16 +18,9 @@ namespace Chess.Source.PlayField {
 			AddComponent(renderer = new SelectionRendererComponent());
 		}
 
-		public override void Update() {
-			base.Update();
-
-			if(TurnManager.selectedCell != null)
-				renderer.SetPiece(TurnManager.selectedCell);
-		}
-
 		private class SelectionRendererComponent : RenderableComponent {
-			public Cell cell;
-			public List<Move> moves;
+			private Cell previousSelectedCell;
+			public List<Move> possibleMoves;
 
 			public override float Height => Constants.CellSize;
 			public override float Width => Constants.CellSize;
@@ -40,15 +33,22 @@ namespace Chess.Source.PlayField {
 				if(GameBoard.Instance.Layout == null)
 					return;
 
+				if(previousSelectedCell != TurnManager.Instance.selectedCell) {
+					previousSelectedCell = TurnManager.Instance.selectedCell;
+
+					if(previousSelectedCell != null && previousSelectedCell.piece != null && previousSelectedCell.piece.color == TurnManager.Instance.CurrentPlayer.color)
+							possibleMoves = MoveGenerator.GenerateMoves(previousSelectedCell);
+				}
+
 				DrawMouseOverlay(batcher, camera);
 				DrawPossibleMoves(batcher);
 			}
 
 			private void DrawPossibleMoves(Batcher batcher) {
-				if(moves == null || TurnManager.selectedCell == null)
+				if(possibleMoves == null || TurnManager.Instance.selectedCell == null)
 					return;
 
-				foreach(Move m in this.moves)
+				foreach(Move m in possibleMoves)
 					batcher.DrawRect(GetCellRectangle(m.targetPosition), new Color(Color.DarkGreen, 0.5f));
 			}
 
@@ -61,15 +61,7 @@ namespace Chess.Source.PlayField {
 				}
 			}
 
-			private Rectangle GetCellRectangle(Point position) => new Rectangle(GameBoard.BoardToWorld(position).RoundToPoint(), Constants.CellArea);
-
-			public void SetPiece(Cell cell) {
-				if(this.cell == cell)
-					return;
-
-				this.cell = cell;
-				this.moves = MoveGenerator.GenerateMoves(cell);
-			}
+			private Rectangle GetCellRectangle(Point position) => new Rectangle(GameBoard.BoardToWorld(position), Constants.CellArea);
 		}
 	}
 }

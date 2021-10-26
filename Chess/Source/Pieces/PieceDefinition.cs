@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Chess.Source.PlayField;
+using Microsoft.Xna.Framework;
 
 namespace Chess.Source.Pieces {
 	struct PieceDefinition {
@@ -12,8 +13,8 @@ namespace Chess.Source.Pieces {
 			this.position = position;
 		}
 
-		public Piece ToEntity() {
-			return new Piece(type, color, position);
+		public Piece ToEntity(Cell cell) {
+			return new Piece(type, color, cell);
 		}
 	}
 }

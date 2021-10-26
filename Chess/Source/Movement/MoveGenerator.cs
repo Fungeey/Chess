@@ -10,17 +10,44 @@ using System.Linq;
 namespace Chess.Source.Movement {
     static class MoveGenerator {
 
-        public static List<Move> GenerateMoves(Cell cell) {
+		private static List<Move> moves;
+
+		// TODO: Add pawn promotion and checking
+
+		// Sees if the cell would be under check.
+		// CellIsUnderCheck(Cell c) (usually where the king is)
+		// 1. Generate moves for all opponent pieces
+		// 2. If any opponent's valid moves contain the king's position, king is under check.
+
+		// If king is under check, find all moves that take king out of check
+		// If none exist, it is checkmate.
+
+		// Check if Move Enters Check
+		// 1. perform move temporarily
+		// 2. if CellIsUnderCheck(), the move was invalid (would have put king under check).
+		// 3. undo move and return outputs. 
+
+
+		/// <summary>
+		/// Generate all of the valid moves for the piece in this cell
+		/// </summary>
+		/// <param name="cell">The cell to move from</param>
+		/// <returns>A list of all moves</returns>
+		public static List<Move> GenerateMoves(Cell cell) {
             Insist.IsNotNull(cell);
             Insist.IsNotNull(cell.piece);
 
-            List<Move> moves = new List<Move>();
+            moves = new List<Move>();
 
+			// For each type of movement defined for the piece in this cell
             foreach(MoveDefinition moveDef in cell.piece.type.moveSet.moves) {
 
                 if(GameBoard.Instance.Layout == BoardLayout.DefaultLayout || GameBoard.Instance.Layout == BoardLayout.FlippedDefaultLayout) {
-                    GetCastlingMoves(cell, moves);
-                    GetEnPassentMoves(cell, moves);
+
+                    GetCastlingMoves(cell);
+
+					if(cell.piece.type != PieceType.Pawn)
+						GetEnPassentMoves(cell);
                 }
 
                 if(moveDef is LeaperMoveDefinition) {
@@ -34,7 +61,7 @@ namespace Chess.Source.Movement {
             return moves;
         }
 
-        private static void GetCastlingMoves(Cell cell, List<Move> moves) {
+        private static void GetCastlingMoves(Cell cell) {
             if(cell.piece.type != PieceType.King)
                 return;
 
@@ -81,10 +108,7 @@ namespace Chess.Source.Movement {
             return true;
         }
 
-        private static void GetEnPassentMoves(Cell cell, List<Move> moves) {
-            if(cell.piece.type != PieceType.Pawn)
-                return;
-
+        private static void GetEnPassentMoves(Cell cell) {
             var leftOffset = cell.position + new Point(-1, 0);
             var rightOffset = cell.position + new Point(1, 0);
             var topColor = GameBoard.Instance.Layout.topColor;
@@ -100,6 +124,9 @@ namespace Chess.Source.Movement {
             }
         }
 
+		/// <summary>
+		/// generates the regular cardinal movements
+		/// </summary>
         private static IEnumerable<Move> AddBasicMoves(Cell cell, MoveDefinition moveDef) {
             var moves = new List<Move>();
             bool isTopColor = cell.piece.color == GameBoard.Instance.Layout.topColor;
@@ -147,6 +174,8 @@ namespace Chess.Source.Movement {
 
             if(moveDef.condition.HasFlag(MoveCondition.NotCaptureOnly))
                 moves.RemoveAll(move => GameBoard.Instance.CellOccupied(move.targetPosition));
+
+			moves.RemoveAll(m => !GameBoard.InBounds(m.targetPosition));
 
             return moves;
         }

@@ -49,7 +49,7 @@
     <Compile Include="Source\Constants.cs" />
     <Compile Include="Source\Gameplay\ComputerPlayer.cs" />
     <Compile Include="Source\Gameplay\HumanPlayer.cs" />
-    <Compile Include="Source\Gameplay\IPlayer.cs" />
+    <Compile Include="Source\Gameplay\Player.cs" />
     <Compile Include="Source\Gameplay\Turn.cs" />
     <Compile Include="Source\Gameplay\TurnManager.cs" />
     <Compile Include="Source\InputHandling\InputEventManager.cs" />
@@ -66,7 +66,7 @@
     <Compile Include="Source\PlayField\BoardRenderer.cs" />
     <Compile Include="Source\PlayField\Cell.cs" />
     <Compile Include="Source\PlayField\GameBoard.cs" />
-    <Compile Include="Source\PlayField\PieceLayout.cs" />
+    <Compile Include="Source\PlayField\BoardLayout.cs" />
     <Compile Include="Source\Rendering\DebugGridRenderer.cs" />
     <Compile Include="Source\Scenes\MainScene.cs" />
     <Compile Include="Source\Utility.cs" />

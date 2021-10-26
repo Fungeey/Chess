@@ -22,6 +22,21 @@ namespace Chess.Source.PlayField {
 			.Add(new Point(3, 3), PieceType.Pawn, PieceColor.White)
 			.AddRowSequence(4, 4, PieceColor.White, PieceType.Rook, PieceType.Bishop, PieceType.Knight, PieceType.King);
 
+		public static readonly BoardLayout MegaChess = New(16, 16, PieceColor.Black)
+			.AddRowSequence(16, 0, PieceColor.Black, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen, PieceType.King, PieceType.Bishop, PieceType.Knight, PieceType.Rook,
+			PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen, PieceType.King, PieceType.Bishop, PieceType.Knight, PieceType.Rook)
+			.AddRow(16, 1, PieceType.Pawn, PieceColor.Black)
+			.AddRow(16, 2, PieceType.Pawn, PieceColor.Black)
+			.AddRow(16, 4, PieceType.Pawn, PieceColor.Black)
+			.AddRow(16, 5, PieceType.Pawn, PieceColor.Black)
+			.AddRow(16, 11, PieceType.Pawn, PieceColor.White)
+			.AddRow(16, 12, PieceType.Pawn, PieceColor.White)
+			.AddRow(16, 13, PieceType.Pawn, PieceColor.White)
+			.AddRow(16, 14, PieceType.Pawn, PieceColor.White)
+			.AddRowSequence(16, 15, PieceColor.White, PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen, PieceType.King, PieceType.Bishop, PieceType.Knight, PieceType.Rook,
+			PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen, PieceType.King, PieceType.Bishop, PieceType.Knight, PieceType.Rook);
+
+
 		public HashSet<PieceDefinition> pieces;
 		public readonly int width;
 		public readonly int height;
@@ -57,6 +72,26 @@ namespace Chess.Source.PlayField {
 				Add(new Point(i, y), types[i], color);
 
 			return this;
+		}
+
+		/// <summary>
+		/// Converts all pieceDefinitions to piece entities, and creates all of the cells.
+		/// Assigns the pieces to the cells they are in.
+		/// </summary>
+		/// <returns>The list of cells</returns>
+		public List<Cell> CreateBoardLayout() {
+			var cells = new List<Cell>();
+			for(int i = 0; i < width; i++) {
+				for(int j = 0; j < height; j++) {
+					var newCell = new Cell(new Point(i, j));
+					foreach(PieceDefinition p in pieces)
+						if(p.position == newCell.position)
+							newCell.piece = p.ToEntity(newCell);
+					cells.Add(newCell);
+				}
+			}
+
+			return cells;
 		}
 	}
 }
