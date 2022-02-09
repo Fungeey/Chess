@@ -7,7 +7,6 @@ namespace Chess {
 	public class ChessGame : Nez.Core {
 
 		public ChessGame() : base(Constants.WindowWidth, Constants.WindowHeight) {
-			Content.RootDirectory = "Content";
 		}
 
 		protected override void Initialize() {

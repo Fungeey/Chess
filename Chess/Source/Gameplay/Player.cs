@@ -6,11 +6,14 @@ namespace Chess.Source.Gameplay {
 		public Turn turn;
 		public TurnManager turnManager;
 		public readonly PieceColor color;
+		public bool hasStarted;
 
 		public Action<Turn> OnTurnCompleted;
 
 		public virtual void StartTurn() {
 			turn = new Turn();
+			hasStarted = true;
+			OnTurnCompleted += (t) => hasStarted = false;
 		}
 
 		public abstract void DoTurn();

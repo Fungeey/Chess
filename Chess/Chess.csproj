@@ -52,7 +52,6 @@
     <Compile Include="Source\Gameplay\Player.cs" />
     <Compile Include="Source\Gameplay\Turn.cs" />
     <Compile Include="Source\Gameplay\TurnManager.cs" />
-    <Compile Include="Source\InputHandling\InputEventManager.cs" />
     <Compile Include="Source\Movement\LeaperMoveDefinition.cs" />
     <Compile Include="Source\Movement\Move.cs" />
     <Compile Include="Source\Movement\MoveDefinition.cs" />
@@ -133,6 +132,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Source\Gameplay\StateHandling\" />
+    <Folder Include="Source\InputHandling\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Pieces\BishopBlack.png" />

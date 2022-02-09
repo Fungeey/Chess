@@ -10,23 +10,11 @@ using System.Linq;
 namespace Chess.Source.Movement {
     static class MoveGenerator {
 
-		private static List<Move> moves;
+		private static List<Cell> opponentPieces;
+		private static Cell startCell;
+		private static Cell kingCell;
 
-		// TODO: Add pawn promotion and checking
-
-		// Sees if the cell would be under check.
-		// CellIsUnderCheck(Cell c) (usually where the king is)
-		// 1. Generate moves for all opponent pieces
-		// 2. If any opponent's valid moves contain the king's position, king is under check.
-
-		// If king is under check, find all moves that take king out of check
-		// If none exist, it is checkmate.
-
-		// Check if Move Enters Check
-		// 1. perform move temporarily
-		// 2. if CellIsUnderCheck(), the move was invalid (would have put king under check).
-		// 3. undo move and return outputs. 
-
+		// TODO: Add pawn promotion
 
 		/// <summary>
 		/// Generate all of the valid moves for the piece in this cell
@@ -34,39 +22,135 @@ namespace Chess.Source.Movement {
 		/// <param name="cell">The cell to move from</param>
 		/// <returns>A list of all moves</returns>
 		public static List<Move> GenerateMoves(Cell cell) {
-            Insist.IsNotNull(cell);
-            Insist.IsNotNull(cell.piece);
+			kingCell = null;
+			opponentPieces = null;
+			startCell = cell;
 
-            moves = new List<Move>();
+			var moves = GenerateMovesWithoutCheck(cell);
+
+			// If king is under check, the only valid moves are moves that bring the king out of check.
+			// If none exist, it is checkmate.
+			kingCell = FindKingCell();
+
+			// remove all moves that 
+				// a) don't get the king out of check.
+				// b) put the king into check
+			var invalidMoves = new List<Move>();
+			foreach(Move move in moves) {
+				if(!KingSafeAfterMove(move))
+					invalidMoves.Add(move);
+			}
+			invalidMoves.ForEach(m => moves.Remove(m));
+
+			if(moves.Count == 0) ; // Checkmate, this player has lost
+
+			return moves;
+		}
+
+		private static Cell FindKingCell() {
+			var cells = GameBoard.Instance.GetCells();
+			cells.RemoveAll(c => c.piece == null);
+			return cells.Where(c => c.piece.type == PieceType.King && c.piece.color == TurnManager.Instance.CurrentPlayer.color).First();
+		}
+
+		private static List<Move> GenerateMovesWithoutCheck(Cell cell) {
+			Insist.IsNotNull(cell);
+			Insist.IsNotNull(cell.piece);
+			var moves = new List<Move>();		// Rename
 
 			// For each type of movement defined for the piece in this cell
-            foreach(MoveDefinition moveDef in cell.piece.type.moveSet.moves) {
+			foreach(MoveDefinition moveDef in cell.piece.type.moveSet.moves) {
 
-                if(GameBoard.Instance.Layout == BoardLayout.DefaultLayout || GameBoard.Instance.Layout == BoardLayout.FlippedDefaultLayout) {
+				if(GameBoard.Instance.Layout == BoardLayout.DefaultLayout || GameBoard.Instance.Layout == BoardLayout.FlippedDefaultLayout) {
 
-                    GetCastlingMoves(cell);
+					moves.AddRange(GetCastlingMoves(cell));
 
 					if(cell.piece.type != PieceType.Pawn)
-						GetEnPassentMoves(cell);
-                }
+						moves.AddRange(GetEnPassentMoves(cell));
+				}
 
-                if(moveDef is LeaperMoveDefinition) {
-                    moves.AddRange(AddLeaperMoves(moveDef, cell, (moveDef as LeaperMoveDefinition).leapDistance));
-                    continue;
-                }
+				if(moveDef is LeaperMoveDefinition) {
+					moves.AddRange(AddLeaperMoves(moveDef, cell, (moveDef as LeaperMoveDefinition).leapDistance, moves));
+					continue;
+				}
 
-                moves.AddRange(AddBasicMoves(cell, moveDef));
-            }
+				moves.AddRange(AddBasicMoves(cell, moveDef));
+			}
 
-            return moves;
-        }
+			return moves;
+		}
 
-        private static void GetCastlingMoves(Cell cell) {
-            if(cell.piece.type != PieceType.King)
-                return;
+		private static List<Cell> GetOpponentPieces() {
+			if(opponentPieces != null)
+				return opponentPieces;
 
-            if(cell.piece.HasMoved)
-                return;
+			var cells = GameBoard.Instance.GetCells();
+			cells.RemoveAll(c => c.piece == null);
+			// Only look for opponent's color, remove our own
+			cells.RemoveAll(c => c.piece.color == TurnManager.Instance.CurrentPlayer.color);
+
+			return opponentPieces = cells;
+		}
+
+		private static bool KingIsUnderCheck() {
+			// Find our king
+			var cells = GameBoard.Instance.GetCells();
+			cells.RemoveAll(c => c.piece == null);
+			Console.Out.WriteLine(cells.Count);
+			kingCell = cells.Where(c => c.piece.type == PieceType.King && c.piece.color == TurnManager.Instance.CurrentPlayer.color).First();
+
+			return CellIsUnderCheck(kingCell);
+		}
+
+		// Sees if the cell would be under check. (usually the king's cell)
+		// 1. Generate moves for all opponent pieces
+		// 2. If any opponent's valid moves contain the king's position, king is under check.
+		private static bool CellIsUnderCheck(Cell cell) {
+			var opponentPieces = GetOpponentPieces();
+
+			foreach(Cell c in opponentPieces) {
+				var moves = GenerateMovesWithoutCheck(c);			// Theres some tricky recursion here. Don't generate 
+				foreach(Move move in moves) {
+					if(move.targetPosition == cell.position) {
+						// this cell can be captured by an opponent piece
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+		
+		// Check if Move resolves check on cell.
+		// 1. perform move temporarily
+		// 2. if CellIsUnderCheck(), the move was invalid (would have put king under check).
+		// 3. undo move and return outputs. 
+		private static bool KingSafeAfterMove(Move move) {
+			// Perform Move
+
+			//startCell
+			var endCell = GameBoard.Instance.GetCell(move.targetPosition);
+
+			var storeEndCellPiece = endCell.piece;
+			endCell.piece = startCell.piece;
+			startCell.piece = null;
+
+			// if the king is no longer under check after the move, it has resolved the check.
+			bool kingNotChecked = !CellIsUnderCheck(FindKingCell());
+
+			// Undo Move
+			startCell.piece = endCell.piece;
+			endCell.piece = storeEndCellPiece;
+
+			return kingNotChecked;
+		}
+
+
+		private static IEnumerable<Move> GetCastlingMoves(Cell cell) {
+			var moves = new List<Move>();
+
+			if(cell.piece.type != PieceType.King || cell.piece.HasMoved)
+                return moves;
 
             void AddMoves(int direction) {
                 if(CanCastle(cell, direction)) {
@@ -87,6 +171,8 @@ namespace Chess.Source.Movement {
 
             AddMoves(-1);
             AddMoves(1);
+
+			return moves;
         }
 
         private static bool CanCastle(Cell cell, int direction) {
@@ -108,8 +194,10 @@ namespace Chess.Source.Movement {
             return true;
         }
 
-        private static void GetEnPassentMoves(Cell cell) {
-            var leftOffset = cell.position + new Point(-1, 0);
+        private static IEnumerable<Move> GetEnPassentMoves(Cell cell) {
+			var moves = new List<Move>(); 
+
+			var leftOffset = cell.position + new Point(-1, 0);
             var rightOffset = cell.position + new Point(1, 0);
             var topColor = GameBoard.Instance.Layout.topColor;
 
@@ -122,7 +210,9 @@ namespace Chess.Source.Movement {
                 if(GameBoard.Instance.TryGetPiece(rightOffset, out var right) && right.DidPawnJump)
                     moves.Add(new Move(cell.position + new Point(1, checkDirection), new Cell(rightOffset, right)));
             }
-        }
+
+			return moves;
+		}
 
 		/// <summary>
 		/// generates the regular cardinal movements
@@ -140,16 +230,15 @@ namespace Chess.Source.Movement {
 
                     moves.AddRange(
                         FilterMoves(moveDef,
-                        GetCellsInDirection(cell, moveDef.distance, offset).ToList(),
-                        cell)
-                    );
+                        GetCellsInDirection(cell, moveDef.distance, offset).ToList(), cell)
+                    ); 
                 }
             }
 
             return moves;
         }
 
-        private static List<Move> AddLeaperMoves(MoveDefinition moveDef, Cell start, Point leapOffset) {
+        private static List<Move> AddLeaperMoves(MoveDefinition moveDef, Cell start, Point leapOffset, List<Move> moves) {
 
             var points = new List<Point>();
             for(int i = -1; i <= 1; i += 2) {

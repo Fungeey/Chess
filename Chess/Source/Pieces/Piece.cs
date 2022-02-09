@@ -1,6 +1,7 @@
 ﻿using Chess.Source.PlayField;
 using Microsoft.Xna.Framework.Graphics;
 using Nez;
+using System;
 
 namespace Chess.Source.Pieces {
 	class Piece {

@@ -11,6 +11,7 @@ namespace Chess.Source.Gameplay {
 		private static TurnManager _instance;
 
 		public Cell selectedCell;
+		private Action OnMouseClick;
 
         private readonly List<Turn> turns;
 		private Player player1, player2;
@@ -23,8 +24,11 @@ namespace Chess.Source.Gameplay {
 			this.player1 = CurrentPlayer = player1;
 			this.player2 = player2;
 
-			CurrentPlayer.StartTurn();
 			CurrentPlayer.OnTurnCompleted += ExecuteTurn;
+			if(CurrentPlayer is ComputerPlayer)
+				OnMouseClick += StartNextTurn;
+			else
+				CurrentPlayer.StartTurn();
 
 			player1.turnManager = this;
 			player2.turnManager = this;
@@ -34,8 +38,13 @@ namespace Chess.Source.Gameplay {
 
         public override void Update() {
             base.Update();
-			CurrentPlayer.DoTurn();
-        }
+			
+			if(CurrentPlayer.hasStarted)
+				CurrentPlayer.DoTurn();
+
+			//if(Input.LeftMouseButtonPressed)				// Uncomment so computers will wait for click before playing their next turn
+				OnMouseClick?.Invoke();
+		}
 
         public void ExecuteTurn(Turn turn) {
 			turn.start.piece.HasMoved = true;
@@ -47,9 +56,18 @@ namespace Chess.Source.Gameplay {
 
 			MovePieces(turn);
 
-			CurrentPlayer.OnTurnCompleted = null;									//unsubscribe from old player
+			if(CurrentPlayer is HumanPlayer)
+				StartNextTurn();
+			else
+				OnMouseClick += StartNextTurn;
+
+		}
+
+		private void StartNextTurn() {
+			OnMouseClick = null;
+			CurrentPlayer.OnTurnCompleted = null;                                   //unsubscribe from old player
 			CurrentPlayer = CurrentPlayer == player1 ? player2 : player1;
-			CurrentPlayer.OnTurnCompleted += ExecuteTurn;							//subscribe to new player
+			CurrentPlayer.OnTurnCompleted += ExecuteTurn;                           //subscribe to new player
 			CurrentPlayer.StartTurn();
 		}
 
